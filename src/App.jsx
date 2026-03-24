@@ -9,7 +9,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/registro" element={<PublicForm />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/acceso-interno" element={<Login />} />
         <Route path="/beneficios" element={
           <ProtectedRoute>
             <Dashboard />
