@@ -15,7 +15,7 @@ function App() {
             <Dashboard />
           </ProtectedRoute>
         } />
-        <Route path="*" element={<Navigate to="/registro" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   )
