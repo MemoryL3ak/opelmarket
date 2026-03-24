@@ -95,7 +95,7 @@ export default function Dashboard() {
       <div className="px-4 pb-6">
         <div className="bg-white/10 rounded-2xl p-4 mb-4">
           <p className="text-white/50 text-xs">Sesión activa</p>
-          <p className="text-white font-semibold text-sm mt-0.5 truncate">{user?.email}</p>
+          <p className="text-white font-semibold text-sm mt-0.5 truncate">{user?.user_metadata?.name || user?.email}</p>
         </div>
         <button
           onClick={handleLogout}
