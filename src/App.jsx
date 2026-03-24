@@ -8,14 +8,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<PublicForm />} />
+        <Route path="/registro" element={<PublicForm />} />
         <Route path="/login" element={<Login />} />
         <Route path="/beneficios" element={
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
         } />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/registro" replace />} />
       </Routes>
     </BrowserRouter>
   )
