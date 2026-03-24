@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #A30C5A;
+  --color-primary-dark: #7d0945;
+  --color-primary-light: #c4106e;
+  --color-secondary: #E2B52C;
+  --color-secondary-dark: #c49a1e;
+  --color-dark: #333333;
+  --color-gray-light: #CCCCCC;
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button, a {
+  cursor: pointer;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #f8f8f8;
+}
