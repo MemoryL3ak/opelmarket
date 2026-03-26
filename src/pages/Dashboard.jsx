@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [registrations, setRegistrations] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState({ nombre: '', empresa: '', numero_tarjeta: '', estado: '' })
   const [sortField, setSortField] = useState('created_at')
   const [sortDir, setSortDir] = useState('desc')
   const [user, setUser] = useState(null)
@@ -56,9 +57,13 @@ export default function Dashboard() {
 
   const filtered = registrations
     .filter(r =>
-      r.nombre?.toLowerCase().includes(search.toLowerCase()) ||
-      r.correo?.toLowerCase().includes(search.toLowerCase()) ||
-      r.empresa?.toLowerCase().includes(search.toLowerCase())
+      (r.nombre?.toLowerCase().includes(search.toLowerCase()) ||
+       r.correo?.toLowerCase().includes(search.toLowerCase()) ||
+       r.empresa?.toLowerCase().includes(search.toLowerCase())) &&
+      (!filters.nombre || r.nombre?.toLowerCase().includes(filters.nombre.toLowerCase())) &&
+      (!filters.empresa || r.empresa?.toLowerCase().includes(filters.empresa.toLowerCase())) &&
+      (!filters.numero_tarjeta || String(r.numero_tarjeta).includes(filters.numero_tarjeta)) &&
+      (!filters.estado || r.estado === filters.estado)
     )
     .sort((a, b) => {
       const va = a[sortField] || ''
@@ -194,6 +199,41 @@ export default function Dashboard() {
               <span className="text-xs sm:text-sm text-gray-400 font-medium whitespace-nowrap">{filtered.length} resultados</span>
             </div>
 
+            {/* Filtros */}
+            <div className="px-4 sm:px-6 py-3 border-b border-gray-100 flex flex-wrap gap-2">
+              {[
+                { key: 'nombre', placeholder: 'Filtrar nombre' },
+                { key: 'empresa', placeholder: 'Filtrar empresa' },
+                { key: 'numero_tarjeta', placeholder: 'Filtrar tarjeta' },
+              ].map(({ key, placeholder }) => (
+                <input
+                  key={key}
+                  type="text"
+                  placeholder={placeholder}
+                  value={filters[key]}
+                  onChange={(e) => setFilters(prev => ({ ...prev, [key]: e.target.value }))}
+                  className="px-3 py-2 rounded-xl border border-gray-200 text-xs outline-none focus:border-[#A30C5A] focus:ring-2 focus:ring-[#A30C5A]/10 transition-all w-36"
+                />
+              ))}
+              <select
+                value={filters.estado}
+                onChange={(e) => setFilters(prev => ({ ...prev, estado: e.target.value }))}
+                className="px-3 py-2 rounded-xl border border-gray-200 text-xs outline-none focus:border-[#A30C5A] focus:ring-2 focus:ring-[#A30C5A]/10 transition-all text-gray-500 w-36"
+              >
+                <option value="">Todos los estados</option>
+                <option value="Ingresado">Ingresado</option>
+                <option value="Entregado">Entregado</option>
+              </select>
+              {(filters.nombre || filters.empresa || filters.numero_tarjeta || filters.estado) && (
+                <button
+                  onClick={() => setFilters({ nombre: '', empresa: '', numero_tarjeta: '', estado: '' })}
+                  className="px-3 py-2 rounded-xl text-xs text-gray-400 hover:text-[#A30C5A] hover:bg-pink-50 transition-all"
+                >
+                  Limpiar filtros
+                </button>
+              )}
+            </div>
+
             {loading ? (
               <div className="flex items-center justify-center py-20">
                 <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#A30C5A] border-t-transparent"></div>
@@ -217,17 +257,18 @@ export default function Dashboard() {
                           { key: 'empresa', label: 'Empresa', icon: Building2 },
                           { key: 'numero_tarjeta', label: 'N° Tarjeta', icon: CreditCard },
                           { key: 'created_at', label: 'Fecha', icon: Calendar },
+                          { key: 'conocia_opelmarket', label: '¿Conocía OpelMarket?', icon: Users },
                           { key: 'estado', label: 'Estado', icon: Coffee },
                         ].map(col => (
                           <th
                             key={col.key}
-                            onClick={() => !['numero_tarjeta', 'estado'].includes(col.key) && handleSort(col.key)}
-                            className={`px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${!['numero_tarjeta', 'estado'].includes(col.key) ? 'cursor-pointer hover:text-[#A30C5A]' : ''}`}
+                            onClick={() => !['numero_tarjeta', 'conocia_opelmarket', 'estado'].includes(col.key) && handleSort(col.key)}
+                            className={`py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.key === 'conocia_opelmarket' ? 'px-3 w-28' : 'px-6'} ${!['numero_tarjeta', 'conocia_opelmarket', 'estado'].includes(col.key) ? 'cursor-pointer hover:text-[#A30C5A]' : ''}`}
                           >
                             <div className="flex items-center gap-2">
                               <col.icon size={14} />
                               {col.label}
-                              {!['numero_tarjeta', 'estado'].includes(col.key) && <SortIcon field={col.key} />}
+                              {!['numero_tarjeta', 'conocia_opelmarket', 'estado'].includes(col.key) && <SortIcon field={col.key} />}
                             </div>
                           </th>
                         ))}
@@ -256,6 +297,15 @@ export default function Dashboard() {
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-400">
                             {new Date(reg.created_at).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </td>
+                          <td className="px-3 py-4">
+                            {reg.conocia_opelmarket === null || reg.conocia_opelmarket === undefined ? (
+                              <span className="text-xs text-gray-300">—</span>
+                            ) : (
+                              <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${reg.conocia_opelmarket ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                {reg.conocia_opelmarket ? 'Sí' : 'No'}
+                              </span>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             {reg.estado === 'Entregado' ? (
@@ -320,6 +370,11 @@ export default function Dashboard() {
                           <Calendar size={10} />
                           {new Date(reg.created_at).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
+                        {reg.conocia_opelmarket !== null && reg.conocia_opelmarket !== undefined && (
+                          <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${reg.conocia_opelmarket ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                            ¿Conocía? {reg.conocia_opelmarket ? 'Sí' : 'No'}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}

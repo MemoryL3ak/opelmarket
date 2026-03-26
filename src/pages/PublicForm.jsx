@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { User, Mail, Building2, CreditCard, CheckCircle, AlertCircle, ShoppingBasket } from 'lucide-react'
 
 export default function PublicForm() {
-  const [form, setForm] = useState({ nombre: '', correo: '', empresa: '', numero_tarjeta: '' })
+  const [form, setForm] = useState({ nombre: '', correo: '', empresa: '', numero_tarjeta: '', conocia_opelmarket: '' })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -26,6 +26,12 @@ export default function PublicForm() {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    if (!form.conocia_opelmarket) {
+      setError('Por favor indica si conocías OpelMarket.')
+      setLoading(false)
+      return
+    }
 
     const { data: existing } = await supabase
       .from('registrations')
@@ -50,6 +56,7 @@ export default function PublicForm() {
       correo: form.correo,
       empresa: form.empresa,
       numero_tarjeta: form.numero_tarjeta,
+      conocia_opelmarket: form.conocia_opelmarket === 'si',
       estado: 'Ingresado'
     }
 
@@ -59,7 +66,7 @@ export default function PublicForm() {
       setError('Ocurrió un error al enviar el formulario. Intenta nuevamente.')
     } else {
       setSuccess(true)
-      setForm({ nombre: '', correo: '', empresa: '', numero_tarjeta: '' })
+      setForm({ nombre: '', correo: '', empresa: '', numero_tarjeta: '', conocia_opelmarket: '' })
     }
     setLoading(false)
   }
@@ -208,6 +215,27 @@ export default function PublicForm() {
                         className={inputClass('numero_tarjeta')}
                         inputMode="numeric"
                       />
+                    </div>
+                  </div>
+
+                  {/* ¿Conocías OpelMarket? */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#333333] mb-3 uppercase tracking-wide">¿Conocías OpelMarket?</label>
+                    <div className="flex gap-3">
+                      {[{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }].map(({ value, label }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setForm(prev => ({ ...prev, conocia_opelmarket: value }))}
+                          className={`flex-1 py-3 rounded-xl border-2 font-semibold text-sm transition-all duration-200 ${
+                            form.conocia_opelmarket === value
+                              ? 'border-[#A30C5A] bg-[#A30C5A] text-white shadow-[0_0_0_4px_rgba(163,12,90,0.12)]'
+                              : 'border-gray-200 text-gray-500 hover:border-[#CCCCCC] bg-white'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
