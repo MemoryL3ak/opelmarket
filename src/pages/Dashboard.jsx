@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import {
   ShoppingBasket, Users, CreditCard, Building2, LogOut,
   Search, RefreshCw, Calendar, Mail, ChevronUp, ChevronDown,
-  TrendingUp, Coffee, Menu, X
+  TrendingUp, Coffee, Menu, X, DollarSign
 } from 'lucide-react'
 
 export default function Dashboard() {
@@ -55,6 +55,23 @@ export default function Dashboard() {
     }
   }
 
+  const formatMonto = (value) => {
+    if (value === null || value === undefined || value === '') return ''
+    return Number(value).toLocaleString('es-CL')
+  }
+
+  const handleMontoChange = async (id, rawValue) => {
+    const cleaned = rawValue.replace(/\./g, '').replace(/\D/g, '')
+    const monto = cleaned === '' ? null : Number(cleaned)
+    const { error } = await supabase
+      .from('registrations')
+      .update({ monto_consumido: monto })
+      .eq('id', id)
+    if (!error) {
+      setRegistrations(prev => prev.map(r => r.id === id ? { ...r, monto_consumido: monto } : r))
+    }
+  }
+
   const filtered = registrations
     .filter(r =>
       (r.nombre?.toLowerCase().includes(search.toLowerCase()) ||
@@ -81,6 +98,7 @@ export default function Dashboard() {
     { label: 'Empresas únicas', value: new Set(registrations.map(r => r.empresa)).size, icon: Building2, color: '#E2B52C' },
     { label: 'Este mes', value: registrations.filter(r => new Date(r.created_at).getMonth() === new Date().getMonth()).length, icon: TrendingUp, color: '#A30C5A' },
     { label: 'Registros hoy', value: registrations.filter(r => new Date(r.created_at).toDateString() === new Date().toDateString()).length, icon: CreditCard, color: '#E2B52C' },
+    { label: 'Monto total consumido', value: `$${registrations.reduce((sum, r) => sum + (r.monto_consumido || 0), 0).toLocaleString('es-CL')}`, icon: DollarSign, color: '#16a34a' },
   ]
 
   const SidebarContent = () => (
@@ -167,7 +185,7 @@ export default function Dashboard() {
         <div className="flex-1 p-4 sm:p-6 lg:p-8">
 
           {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {stats.map((stat) => (
               <div key={stat.label} className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-3">
@@ -258,12 +276,13 @@ export default function Dashboard() {
                           { key: 'numero_tarjeta', label: 'N° Tarjeta', icon: CreditCard },
                           { key: 'created_at', label: 'Fecha', icon: Calendar },
                           { key: 'conocia_opelmarket', label: '¿Conocía OpelMarket?', icon: Users },
+                          { key: 'monto_consumido', label: 'Monto Consumido', icon: DollarSign },
                           { key: 'estado', label: 'Estado', icon: Coffee },
                         ].map(col => (
                           <th
                             key={col.key}
-                            onClick={() => !['numero_tarjeta', 'conocia_opelmarket', 'estado'].includes(col.key) && handleSort(col.key)}
-                            className={`py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.key === 'conocia_opelmarket' ? 'px-3 w-28' : 'px-6'} ${!['numero_tarjeta', 'conocia_opelmarket', 'estado'].includes(col.key) ? 'cursor-pointer hover:text-[#A30C5A]' : ''}`}
+                            onClick={() => !['numero_tarjeta', 'conocia_opelmarket', 'estado', 'monto_consumido'].includes(col.key) && handleSort(col.key)}
+                            className={`py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.key === 'conocia_opelmarket' ? 'px-3 w-28' : 'px-6'} ${!['numero_tarjeta', 'conocia_opelmarket', 'estado', 'monto_consumido'].includes(col.key) ? 'cursor-pointer hover:text-[#A30C5A]' : ''}`}
                           >
                             <div className="flex items-center gap-2">
                               <col.icon size={14} />
@@ -306,6 +325,19 @@ export default function Dashboard() {
                                 {reg.conocia_opelmarket ? 'Sí' : 'No'}
                               </span>
                             )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="relative">
+                              <DollarSign size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={formatMonto(reg.monto_consumido)}
+                                onChange={(e) => handleMontoChange(reg.id, e.target.value)}
+                                placeholder="0"
+                                className="w-28 pl-8 pr-2 py-1.5 rounded-lg border border-gray-200 text-sm text-right font-mono outline-none focus:border-[#A30C5A] focus:ring-2 focus:ring-[#A30C5A]/10 transition-all"
+                              />
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             {reg.estado === 'Entregado' ? (
@@ -375,6 +407,20 @@ export default function Dashboard() {
                             ¿Conocía? {reg.conocia_opelmarket ? 'Sí' : 'No'}
                           </span>
                         )}
+                      </div>
+                      <div className="mt-3">
+                        <label className="text-xs text-gray-400 font-medium">Monto Consumido</label>
+                        <div className="relative mt-1">
+                          <DollarSign size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={formatMonto(reg.monto_consumido)}
+                            onChange={(e) => handleMontoChange(reg.id, e.target.value)}
+                            placeholder="0"
+                            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-right font-mono outline-none focus:border-[#A30C5A] focus:ring-2 focus:ring-[#A30C5A]/10 transition-all"
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
