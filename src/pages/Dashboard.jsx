@@ -3,8 +3,9 @@ import { supabase } from '../lib/supabase'
 import {
   ShoppingBasket, Users, Ticket, Building2, LogOut,
   Search, RefreshCw, Calendar, Mail, ChevronUp, ChevronDown,
-  TrendingUp, Coffee, Menu, X, DollarSign
+  TrendingUp, Coffee, Menu, X, DollarSign, Download
 } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 export default function Dashboard() {
   const [registrations, setRegistrations] = useState([])
@@ -53,6 +54,23 @@ export default function Dashboard() {
     if (!error) {
       setRegistrations(prev => prev.map(r => r.id === id ? { ...r, estado: 'Entregado' } : r))
     }
+  }
+
+  const exportToExcel = () => {
+    const data = filtered.map(r => ({
+      'Nombre': r.nombre || '',
+      'Correo': r.correo || '',
+      'Empresa': r.empresa || '',
+      'N° Flyer': r.numero_tarjeta ?? '',
+      'Fecha': new Date(r.created_at).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      '¿Conocía OpelMarket?': r.conocia_opelmarket === null || r.conocia_opelmarket === undefined ? '' : r.conocia_opelmarket ? 'Sí' : 'No',
+      'Monto Consumido': r.monto_consumido ?? '',
+      'Estado': r.estado || '',
+    }))
+    const ws = XLSX.utils.json_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Registros')
+    XLSX.writeFile(wb, `registros_opelmarket_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   const formatMonto = (value) => {
@@ -190,14 +208,23 @@ export default function Dashboard() {
               <p className="text-gray-400 text-xs sm:text-sm mt-0.5 hidden sm:block">Administra todos los registros del sistema</p>
             </div>
           </div>
-          <button
-            onClick={fetchRegistrations}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all hover:shadow-md whitespace-nowrap"
-            style={{background: 'linear-gradient(135deg, #A30C5A, #c4106e)', color: 'white'}}
-          >
-            <RefreshCw size={15} />
-            <span className="hidden sm:inline">Actualizar</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all hover:shadow-md whitespace-nowrap border-2 border-[#A30C5A] text-[#A30C5A] hover:bg-[#A30C5A]/5"
+            >
+              <Download size={15} />
+              <span className="hidden sm:inline">Exportar Excel</span>
+            </button>
+            <button
+              onClick={fetchRegistrations}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all hover:shadow-md whitespace-nowrap"
+              style={{background: 'linear-gradient(135deg, #A30C5A, #c4106e)', color: 'white'}}
+            >
+              <RefreshCw size={15} />
+              <span className="hidden sm:inline">Actualizar</span>
+            </button>
+          </div>
         </header>
 
         <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
