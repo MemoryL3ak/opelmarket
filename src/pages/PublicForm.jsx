@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { User, Mail, Building2, CreditCard, CheckCircle, AlertCircle, ShoppingBasket } from 'lucide-react'
+import { User, Mail, Building2, Ticket, CheckCircle, AlertCircle, ShoppingBasket } from 'lucide-react'
 
 export default function PublicForm() {
   const [form, setForm] = useState({ nombre: '', correo: '', empresa: '', numero_tarjeta: '', conocia_opelmarket: '' })
@@ -45,7 +45,7 @@ export default function PublicForm() {
       } else if (dup.correo.toLowerCase() === form.correo.toLowerCase()) {
         setError('Ya existe un registro con ese correo electrónico.')
       } else {
-        setError('Ya existe un registro con ese número de tarjeta.')
+        setError('Ya existe un registro con ese número de flyer.')
       }
       setLoading(false)
       return
@@ -198,9 +198,9 @@ export default function PublicForm() {
 
                   {/* Tarjeta */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#333333] mb-2 uppercase tracking-wide">N° de Tarjeta</label>
+                    <label className="block text-xs font-semibold text-[#333333] mb-2 uppercase tracking-wide">N° de Flyer</label>
                     <div className="relative">
-                      <CreditCard size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${focused === 'numero_tarjeta' ? 'text-[#A30C5A]' : 'text-gray-400'}`} />
+                      <Ticket size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${focused === 'numero_tarjeta' ? 'text-[#A30C5A]' : 'text-gray-400'}`} />
                       <input
                         type="number"
                         name="numero_tarjeta"

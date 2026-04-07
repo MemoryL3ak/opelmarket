@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import {
-  ShoppingBasket, Users, CreditCard, Building2, LogOut,
+  ShoppingBasket, Users, Ticket, Building2, LogOut,
   Search, RefreshCw, Calendar, Mail, ChevronUp, ChevronDown,
   TrendingUp, Coffee, Menu, X, DollarSign
 } from 'lucide-react'
@@ -114,7 +114,7 @@ export default function Dashboard() {
     { label: 'Total registros', value: registrations.length, icon: Users, color: '#A30C5A' },
     { label: 'Empresas únicas', value: new Set(registrations.map(r => r.empresa)).size, icon: Building2, color: '#E2B52C' },
     { label: 'Este mes', value: registrations.filter(r => new Date(r.created_at).getMonth() === new Date().getMonth()).length, icon: TrendingUp, color: '#A30C5A' },
-    { label: 'Registros hoy', value: registrations.filter(r => new Date(r.created_at).toDateString() === new Date().toDateString()).length, icon: CreditCard, color: '#E2B52C' },
+    { label: 'Registros hoy', value: registrations.filter(r => new Date(r.created_at).toDateString() === new Date().toDateString()).length, icon: Ticket, color: '#E2B52C' },
     { label: 'Cafés entregados hoy', value: registrations.filter(r => r.estado === 'Entregado' && new Date(r.created_at).toDateString() === new Date().toDateString()).length, icon: Coffee, color: '#8B5CF6' },
     { label: 'Monto total consumido', value: `$${registrations.reduce((sum, r) => sum + (r.monto_consumido || 0), 0).toLocaleString('es-CL')}`, icon: DollarSign, color: '#16a34a' },
   ]
@@ -291,7 +291,7 @@ export default function Dashboard() {
                           { key: 'nombre', label: 'Nombre', icon: Users },
                           { key: 'correo', label: 'Correo', icon: Mail },
                           { key: 'empresa', label: 'Empresa', icon: Building2 },
-                          { key: 'numero_tarjeta', label: 'N° Flyer', icon: CreditCard },
+                          { key: 'numero_tarjeta', label: 'N° Flyer', icon: Ticket },
                           { key: 'created_at', label: 'Fecha', icon: Calendar },
                           { key: 'conocia_opelmarket', label: '¿Conocía OpelMarket?', icon: Users },
                           { key: 'monto_consumido', label: 'Monto Consumido', icon: DollarSign },
