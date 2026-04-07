@@ -60,6 +60,18 @@ export default function Dashboard() {
     return Number(value).toLocaleString('es-CL')
   }
 
+  const handleFlyerChange = async (id, rawValue) => {
+    const cleaned = rawValue.replace(/\D/g, '')
+    const numero = cleaned === '' ? null : Number(cleaned)
+    const { error } = await supabase
+      .from('registrations')
+      .update({ numero_tarjeta: numero })
+      .eq('id', id)
+    if (!error) {
+      setRegistrations(prev => prev.map(r => r.id === id ? { ...r, numero_tarjeta: numero } : r))
+    }
+  }
+
   const handleMontoChange = async (id, rawValue) => {
     const cleaned = rawValue.replace(/\./g, '').replace(/\D/g, '')
     const monto = cleaned === '' ? null : Number(cleaned)
@@ -83,6 +95,11 @@ export default function Dashboard() {
       (!filters.estado || r.estado === filters.estado)
     )
     .sort((a, b) => {
+      if (sortField === 'numero_tarjeta') {
+        const na = Number(a.numero_tarjeta) || 0
+        const nb = Number(b.numero_tarjeta) || 0
+        return sortDir === 'asc' ? na - nb : nb - na
+      }
       const va = a[sortField] || ''
       const vb = b[sortField] || ''
       return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va)
@@ -98,6 +115,7 @@ export default function Dashboard() {
     { label: 'Empresas únicas', value: new Set(registrations.map(r => r.empresa)).size, icon: Building2, color: '#E2B52C' },
     { label: 'Este mes', value: registrations.filter(r => new Date(r.created_at).getMonth() === new Date().getMonth()).length, icon: TrendingUp, color: '#A30C5A' },
     { label: 'Registros hoy', value: registrations.filter(r => new Date(r.created_at).toDateString() === new Date().toDateString()).length, icon: CreditCard, color: '#E2B52C' },
+    { label: 'Cafés entregados hoy', value: registrations.filter(r => r.estado === 'Entregado' && new Date(r.created_at).toDateString() === new Date().toDateString()).length, icon: Coffee, color: '#8B5CF6' },
     { label: 'Monto total consumido', value: `$${registrations.reduce((sum, r) => sum + (r.monto_consumido || 0), 0).toLocaleString('es-CL')}`, icon: DollarSign, color: '#16a34a' },
   ]
 
@@ -156,7 +174,7 @@ export default function Dashboard() {
       )}
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col min-h-screen overflow-hidden max-h-screen">
 
         {/* Top bar */}
         <header className="bg-white shadow-sm px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-3">
@@ -182,10 +200,10 @@ export default function Dashboard() {
           </button>
         </header>
 
-        <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
 
           {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {stats.map((stat) => (
               <div key={stat.label} className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-3">
@@ -268,12 +286,12 @@ export default function Dashboard() {
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-gray-50">
+                      <tr className="bg-gray-50 sticky top-0 z-10">
                         {[
                           { key: 'nombre', label: 'Nombre', icon: Users },
                           { key: 'correo', label: 'Correo', icon: Mail },
                           { key: 'empresa', label: 'Empresa', icon: Building2 },
-                          { key: 'numero_tarjeta', label: 'N° Tarjeta', icon: CreditCard },
+                          { key: 'numero_tarjeta', label: 'N° Flyer', icon: CreditCard },
                           { key: 'created_at', label: 'Fecha', icon: Calendar },
                           { key: 'conocia_opelmarket', label: '¿Conocía OpelMarket?', icon: Users },
                           { key: 'monto_consumido', label: 'Monto Consumido', icon: DollarSign },
@@ -281,13 +299,13 @@ export default function Dashboard() {
                         ].map(col => (
                           <th
                             key={col.key}
-                            onClick={() => !['numero_tarjeta', 'conocia_opelmarket', 'estado', 'monto_consumido'].includes(col.key) && handleSort(col.key)}
-                            className={`py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.key === 'conocia_opelmarket' ? 'px-3 w-28' : 'px-6'} ${!['numero_tarjeta', 'conocia_opelmarket', 'estado', 'monto_consumido'].includes(col.key) ? 'cursor-pointer hover:text-[#A30C5A]' : ''}`}
+                            onClick={() => !['conocia_opelmarket', 'estado', 'monto_consumido'].includes(col.key) && handleSort(col.key)}
+                            className={`py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${col.key === 'conocia_opelmarket' ? 'px-3 w-28' : 'px-6'} ${!['conocia_opelmarket', 'estado', 'monto_consumido'].includes(col.key) ? 'cursor-pointer hover:text-[#A30C5A]' : ''}`}
                           >
-                            <div className="flex items-center gap-2">
+                            <div className={`flex items-center gap-2 ${col.key !== 'conocia_opelmarket' ? 'whitespace-nowrap' : ''}`}>
                               <col.icon size={14} />
                               {col.label}
-                              {!['numero_tarjeta', 'conocia_opelmarket', 'estado'].includes(col.key) && <SortIcon field={col.key} />}
+                              {!['conocia_opelmarket', 'estado'].includes(col.key) && <SortIcon field={col.key} />}
                             </div>
                           </th>
                         ))}
@@ -312,7 +330,14 @@ export default function Dashboard() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-mono text-sm text-[#333333]">{reg.numero_tarjeta}</span>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={reg.numero_tarjeta ?? ''}
+                              onChange={(e) => handleFlyerChange(reg.id, e.target.value)}
+                              placeholder="0"
+                              className="w-24 px-2 py-1.5 rounded-lg border border-gray-200 text-sm font-mono text-[#333333] outline-none focus:border-[#A30C5A] focus:ring-2 focus:ring-[#A30C5A]/10 transition-all"
+                            />
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-400">
                             {new Date(reg.created_at).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -396,7 +421,15 @@ export default function Dashboard() {
                           {reg.empresa}
                         </span>
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 font-mono">
-                          # {reg.numero_tarjeta}
+                          #
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={reg.numero_tarjeta ?? ''}
+                            onChange={(e) => handleFlyerChange(reg.id, e.target.value)}
+                            placeholder="0"
+                            className="w-16 bg-transparent outline-none text-xs font-mono"
+                          />
                         </span>
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">
                           <Calendar size={10} />
