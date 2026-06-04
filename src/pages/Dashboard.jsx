@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import {
-  ShoppingBasket, Users, Ticket, Building2, LogOut,
+  ShoppingBasket, Users, Ticket, Building2,
   Search, RefreshCw, Calendar, Mail, ChevronUp, ChevronDown,
   TrendingUp, Coffee, Menu, X, DollarSign, Download
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import Sidebar from '../components/Sidebar'
 
 export default function Dashboard() {
   const [registrations, setRegistrations] = useState([])
@@ -16,11 +17,6 @@ export default function Dashboard() {
   const [sortDir, setSortDir] = useState('desc')
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
-    fetchRegistrations()
-  }, [])
 
   const fetchRegistrations = async () => {
     setLoading(true)
@@ -33,9 +29,10 @@ export default function Dashboard() {
     setLoading(false)
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-  }
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+    fetchRegistrations()
+  }, [])
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -137,42 +134,12 @@ export default function Dashboard() {
     { label: 'Monto total consumido', value: `$${registrations.reduce((sum, r) => sum + (r.monto_consumido || 0), 0).toLocaleString('es-CL')}`, icon: DollarSign, color: '#16a34a' },
   ]
 
-  const SidebarContent = () => (
-    <>
-      <div className="px-6 overflow-hidden" style={{marginTop: '-28px', marginBottom: '-28px'}}>
-        <img src="/logo.png" alt="Opel Market" className="w-4/5" />
-      </div>
-
-      <nav className="flex-1 px-4">
-        <div className="text-white/40 text-xs font-semibold uppercase tracking-wider px-3 mb-3">Principal</div>
-        <a href="/beneficios" className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/15 text-white font-semibold text-sm mb-1">
-          <Users size={18} />
-          Registros
-        </a>
-      </nav>
-
-      <div className="px-4 pb-6">
-        <div className="bg-white/10 rounded-2xl p-4 mb-4">
-          <p className="text-white/50 text-xs">Sesión activa</p>
-          <p className="text-white font-semibold text-sm mt-0.5 truncate">{user?.user_metadata?.name || user?.email}</p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 w-full px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all text-sm font-medium"
-        >
-          <LogOut size={18} />
-          Cerrar sesión
-        </button>
-      </div>
-    </>
-  )
-
   return (
     <div className="min-h-screen bg-gray-50 flex">
 
       {/* Sidebar desktop */}
       <aside className="hidden lg:flex w-64 min-h-screen flex-col shadow-xl" style={{background: 'linear-gradient(180deg, #6b0a3a 0%, #3d0622 100%)'}}>
-        <SidebarContent />
+        <Sidebar user={user} active="registros" />
       </aside>
 
       {/* Sidebar mobile overlay */}
@@ -186,7 +153,7 @@ export default function Dashboard() {
             >
               <X size={22} />
             </button>
-            <SidebarContent />
+            <Sidebar user={user} active="registros" onNavigate={() => setSidebarOpen(false)} />
           </aside>
         </div>
       )}
